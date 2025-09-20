@@ -5,7 +5,7 @@
 </template>
 
 <script setup lang="ts">
-const msg = "欢迎来到编程导航，你将从这里开始项目学习之旅~";
+const msg = "欢迎来到云深壁纸，海量壁纸任你挑选~";
 </script>
 
 <style scoped>
