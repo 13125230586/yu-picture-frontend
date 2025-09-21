@@ -29,50 +29,40 @@
       </a-space>
     </div>
     <!-- 图片列表 -->
-    <a-list
-      :grid="{ gutter: 16, xs: 1, sm: 2, md: 3, lg: 4, xl: 5, xxl: 6 }"
-      :data-source="dataList"
-      :pagination="pagination"
+    <HomePictureList
+      :pictureList="dataList"
       :loading="loading"
-    >
-      <template #renderItem="{ item: picture }">
-        <a-list-item style="padding: 0">
-          <!-- 单张图片 -->
-          <a-card hoverable @click="doClickPicture(picture)">
-            <template #cover>
-              <img
-                :alt="picture.name"
-                :src="picture.url"
-                style="height: 180px; object-fit: cover"
-              />
-            </template>
-            <a-card-meta :title="picture.name">
-              <template #description>
-                <a-flex>
-                  <a-tag color="green">
-                    {{ picture.category ?? '默认' }}
-                  </a-tag>
-                  <a-tag v-for="tag in picture.tags" :key="tag">
-                    {{ tag }}
-                  </a-tag>
-                </a-flex>
-              </template>
-            </a-card-meta>
-          </a-card>
-        </a-list-item>
-      </template>
-    </a-list>
+      :showView="true"
+      :showDownload="true"
+      :showLike="true"
+      :showCollect="true"
+      :showShare="true"
+      :showSearch="true"
+    />
+    
+    <!-- 分页 -->
+    <div class="pagination-wrapper" v-if="total > 0">
+      <a-pagination
+        v-model:current="searchParams.current"
+        v-model:page-size="searchParams.pageSize"
+        :total="total"
+        :show-size-changer="true"
+        :page-size-options="['30', '50', '100']"
+        @change="fetchData"
+        @showSizeChange="fetchData"
+      />
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, reactive, ref } from 'vue'
+import { onMounted, reactive, ref } from 'vue'
 import {
   listPictureTagCategoryUsingGet,
   listPictureVoByPageUsingPost,
 } from '@/api/pictureController.ts'
 import { message } from 'ant-design-vue'
-import { useRouter } from 'vue-router' // 定义数据
+import HomePictureList from '@/components/picture/HomePictureList.vue'
 
 // 定义数据
 const dataList = ref<API.PictureVO[]>([])
@@ -82,7 +72,7 @@ const loading = ref(true)
 // 搜索条件
 const searchParams = reactive<API.PictureQueryRequest>({
   current: 1,
-  pageSize: 12,
+  pageSize: 30,
   sortField: 'createTime',
   sortOrder: 'descend',
 })
@@ -119,20 +109,6 @@ onMounted(() => {
   fetchData()
 })
 
-// 分页参数
-const pagination = computed(() => {
-  return {
-    current: searchParams.current,
-    pageSize: searchParams.pageSize,
-    total: total.value,
-    onChange: (page: number, pageSize: number) => {
-      searchParams.current = page
-      searchParams.pageSize = pageSize
-      fetchData()
-    },
-  }
-})
-
 // 搜索
 const doSearch = () => {
   // 重置搜索条件
@@ -148,7 +124,6 @@ const selectedTagList = ref<boolean[]>([])
 
 /**
  * 获取标签和分类选项
- * @param values
  */
 const getTagCategoryOptions = async () => {
   const res = await listPictureTagCategoryUsingGet()
@@ -158,14 +133,6 @@ const getTagCategoryOptions = async () => {
   } else {
     message.error('获取标签分类列表失败，' + res.data.message)
   }
-}
-
-const router = useRouter()
-// 跳转至图片详情页
-const doClickPicture = (picture: API.PictureVO) => {
-  router.push({
-    path: `/picture/${picture.id}`,
-  })
 }
 
 onMounted(() => {
@@ -185,6 +152,12 @@ onMounted(() => {
 
 #homePage .tag-bar {
   margin-bottom: 16px;
+}
+
+.pagination-wrapper {
+  text-align: center;
+  margin: 40px 0;
+  padding: 20px;
 }
 </style>
 
