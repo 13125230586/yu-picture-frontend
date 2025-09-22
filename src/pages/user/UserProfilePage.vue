@@ -12,7 +12,11 @@
         <a-form-item label="用户名" name="userName" :rules="[{ required: true, message: '请输入用户名' }]">
           <a-input v-model:value="formState.userName" placeholder="请输入用户名" />
         </a-form-item>
-        
+
+        <a-form-item label="用户ID">
+          <a-input :value="loginUserStore.loginUser.id" disabled />
+        </a-form-item>
+
         <a-form-item label="头像" name="userAvatar">
           <div class="avatar-upload">
             <a-avatar :size="80" :src="formState.userAvatar" />
@@ -23,7 +27,7 @@
             />
           </div>
         </a-form-item>
-        
+
         <a-form-item label="个人简介" name="userProfile">
           <a-textarea
             v-model:value="formState.userProfile"
@@ -33,16 +37,16 @@
             show-count
           />
         </a-form-item>
-        
+
         <a-form-item label="账号">
           <a-input :value="loginUserStore.loginUser.userAccount" disabled />
         </a-form-item>
-        
+
         <a-form-item label="用户角色">
           <a-tag v-if="loginUserStore.loginUser.userRole === 'admin'" color="green">管理员</a-tag>
           <a-tag v-else color="blue">普通用户</a-tag>
         </a-form-item>
-        
+
         <a-form-item :wrapper-col="{ offset: 6, span: 18 }">
           <a-space>
             <a-button type="primary" html-type="submit" :loading="loading">保存修改</a-button>
@@ -90,7 +94,7 @@ const handleSubmit = async (values: any) => {
     message.error('用户信息获取失败，请重新登录')
     return
   }
-  
+
   loading.value = true
   try {
     const res = await updateUserUsingPost(formState)
