@@ -62,7 +62,7 @@
                 type="text"
                 size="small"
                 class="action-btn"
-                @click="handleDownload(picture)"
+                @click.stop.prevent="handleDownload(picture)"
                 title="下载"
               >
                 <DownloadOutlined />
