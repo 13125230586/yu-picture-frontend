@@ -45,10 +45,10 @@ export async function testUploadFileUsingPost(
     }
   })
 
-/*  return request<API.BaseResponseString_>('/api/file/test/upload', {
+  return request<API.BaseResponseString_>('/api/file/test/upload', {
     method: 'POST',
     data: formData,
     requestType: 'form',
     ...(options || {}),
-  })*/
+  })
 }
