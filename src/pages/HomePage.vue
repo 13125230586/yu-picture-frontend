@@ -39,7 +39,7 @@
       :showShare="true"
       :showSearch="true"
     />
-    
+
     <!-- 分页 -->
     <div class="pagination-wrapper" v-if="total > 0">
       <a-pagination
@@ -47,7 +47,7 @@
         v-model:page-size="searchParams.pageSize"
         :total="total"
         :show-size-changer="true"
-        :page-size-options="['30', '50', '100']"
+        :page-size-options="['50', '100', '200']"
         @change="fetchData"
         @showSizeChange="fetchData"
       />
@@ -59,7 +59,7 @@
 import { onMounted, reactive, ref } from 'vue'
 import {
   listPictureTagCategoryUsingGet,
-  listPictureVoByPageUsingPost,
+  listPictureVoByPageWithCacheUsingPost,
 } from '@/api/pictureController.ts'
 import { message } from 'ant-design-vue'
 import HomePictureList from '@/components/picture/HomePictureList.vue'
@@ -72,7 +72,7 @@ const loading = ref(true)
 // 搜索条件
 const searchParams = reactive<API.PictureQueryRequest>({
   current: 1,
-  pageSize: 30,
+  pageSize: 50,
   sortField: 'createTime',
   sortOrder: 'descend',
 })
@@ -94,7 +94,7 @@ const fetchData = async () => {
       params.tags.push(tagList.value[index])
     }
   })
-  const res = await listPictureVoByPageUsingPost(params)
+  const res = await listPictureVoByPageWithCacheUsingPost(params)
   if (res.data.code === 0 && res.data.data) {
     dataList.value = res.data.data.records ?? []
     total.value = res.data.data.total ?? 0

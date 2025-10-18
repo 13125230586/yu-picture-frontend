@@ -13,7 +13,7 @@
         class="picture-item"
         @click="handlePictureClick(picture)"
       >
-        <!-- 图片容器 -->
+        <!-- 图片容器picture.thumbnailUrl ?? picture.url -->
         <div class="picture-wrapper">
           <img
             :src="picture.url"
@@ -43,7 +43,7 @@
                 <span class="picture-format">{{ picture.picFormat?.toUpperCase() }}</span>
               </div>
             </div>
-            
+
             <!-- 操作按钮 -->
             <div class="picture-actions" @click.stop>
               <a-button
@@ -172,7 +172,7 @@ const containerHeight = ref(0)
 // 列宽度
 const columnWidth = ref(0)
 // 列间距
-const gap = 16
+const gap = 8
 
 const updateColumnCount = () => {
   if (!containerRef.value) return
@@ -213,11 +213,31 @@ const calculateMasonryLayout = () => {
     const left = shortestColumnIndex * (columnWidth.value + gap)
     const top = columnHeights.value[shortestColumnIndex]
 
+    // 获取图片元素，检测是否为宽图
+    const imgElement = item.querySelector('.picture-image') as HTMLImageElement
+    let itemWidth = columnWidth.value
+    const wideImageScaleFactor = 0.8
+    const wideImageAspectRatioThreshold = 1.8
+
+    if (imgElement && imgElement.naturalWidth && imgElement.naturalHeight) {
+      const aspectRatio = imgElement.naturalWidth / imgElement.naturalHeight
+      // 对于宽高比大于1.8的横向图片，缩小显示尺寸
+      if (aspectRatio > wideImageAspectRatioThreshold) {
+        itemWidth = columnWidth.value * wideImageScaleFactor
+      }
+    }
+
     // 设置位置
     item.style.position = 'absolute'
     item.style.left = `${left}px`
     item.style.top = `${top}px`
-    item.style.width = `${columnWidth.value}px`
+    item.style.width = `${itemWidth}px`
+
+    // 如果是缩小的宽图，居中显示
+    if (itemWidth < columnWidth.value) {
+      const offset = (columnWidth.value - itemWidth) / 2
+      item.style.left = `${left + offset}px`
+    }
 
     // 更新该列的高度
     const itemHeight = item.offsetHeight
@@ -497,7 +517,7 @@ onUnmounted(() => {
   color: rgba(255, 255, 255, 0.9);
 }
 
-.picture-info-overlay .picture-size, 
+.picture-info-overlay .picture-size,
 .picture-info-overlay .picture-format {
   background: rgba(255, 255, 255, 0.2);
   padding: 2px 6px;
@@ -519,17 +539,17 @@ onUnmounted(() => {
   }
 
   .masonry-container {
-    gap: 8px;
+    gap: 6px;
   }
 
   .picture-overlay {
     padding: 12px;
   }
-  
+
   .picture-info-overlay .picture-title {
     font-size: 12px;
   }
-  
+
   .picture-info-overlay .picture-meta {
     font-size: 10px;
   }
@@ -553,7 +573,7 @@ onUnmounted(() => {
     width: 36px !important;
     height: 36px !important;
   }
-  
+
   .picture-overlay {
     padding: 14px;
   }
