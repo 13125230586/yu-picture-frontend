@@ -30,6 +30,12 @@
                 <UserOutlined />
                 个人中心
               </a-menu-item>
+              <a-menu-item>
+                <router-link to="/my_space">
+                  <FolderOutlined />
+                  我的空间
+                </router-link>
+              </a-menu-item>
               <a-menu-item @click="doLogout">
                 <LogoutOutlined />
                 退出登录
@@ -46,11 +52,17 @@
       </div>
     </a-col>
   </a-row>
+  <!-- 隐藏的图片组件用于预览联系方式 -->
+  <a-image
+    :src="contactImageUrl"
+    :preview="{ visible: previewVisible, onVisibleChange: (visible) => previewVisible = visible }"
+    style="display: none"
+  />
 </template>
 
 <script lang="ts" setup>
 import { computed, h, ref } from 'vue'
-import { HomeOutlined, LogoutOutlined, UserOutlined } from '@ant-design/icons-vue'
+import { HomeOutlined, LogoutOutlined, UserOutlined, FolderOutlined } from '@ant-design/icons-vue'
 import { message } from 'ant-design-vue'
 import type { MenuProps } from 'ant-design-vue'
 
@@ -80,9 +92,14 @@ const originItems = [
     title: '图片管理',
   },
   {
+    key: '/admin/spaceManage',
+    label: '空间管理',
+    title: '空间管理',
+  },
+  {
     key: 'others',
-    label: h('a', { href: 'https://www.codefather.cn', target: '_blank' }, '编程导航'),
-    title: '编程导航',
+    label: '联系云深',
+    title: '联系云深',
   },
 ]
 
@@ -107,8 +124,17 @@ import { useLoginUserStore } from '@/stores/useLoginUserStore.ts'
 import { userLogoutUsingPost } from '@/api/userController.ts'
 const router = useRouter()
 
+// 联系方式图片
+const contactImageUrl = 'https://yunshen-1359852853.cos.ap-shanghai.myqcloud.com/public/1969313712637472770/2025-10-19_9epMeagexFGK4ZSD.webp'
+const previewVisible = ref(false)
+
 // 路由跳转事件
 const doMenuClick = ({ key }: { key: string }) => {
+  // 如果点击的是"联系云深"菜单，显示联系方式图片
+  if (key === 'others') {
+    previewVisible.value = true
+    return
+  }
   router.push({
     path: key,
   })

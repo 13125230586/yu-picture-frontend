@@ -59,7 +59,7 @@
 import { onMounted, reactive, ref } from 'vue'
 import {
   listPictureTagCategoryUsingGet,
-  listPictureVoByPageWithCacheUsingPost,
+  listPictureVoByPageUsingPost,
 } from '@/api/pictureController.ts'
 import { message } from 'ant-design-vue'
 import HomePictureList from '@/components/picture/HomePictureList.vue'
@@ -94,7 +94,7 @@ const fetchData = async () => {
       params.tags.push(tagList.value[index])
     }
   })
-  const res = await listPictureVoByPageWithCacheUsingPost(params)
+  const res = await listPictureVoByPageUsingPost(params)
   if (res.data.code === 0 && res.data.data) {
     dataList.value = res.data.data.records ?? []
     total.value = res.data.data.total ?? 0

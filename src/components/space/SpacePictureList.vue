@@ -1,5 +1,5 @@
 <template>
-  <div class="home-picture-list">
+  <div class="space-picture-list">
     <div
       ref="containerRef"
       class="masonry-container"
@@ -13,7 +13,7 @@
         class="picture-item"
         @click="handlePictureClick(picture)"
       >
-        <!-- 图片容器picture.thumbnailUrl ?? picture.url -->
+        <!-- 图片容器 -->
         <div class="picture-wrapper">
           <img
             :src="picture.url"
@@ -47,72 +47,31 @@
             <!-- 操作按钮 -->
             <div class="picture-actions" @click.stop>
               <a-button
-                v-if="showView"
                 type="text"
                 size="small"
                 class="action-btn"
-                @click="handleView(picture)"
-                title="查看详情"
+                @click="doEdit(picture, $event)"
+                title="编辑"
               >
-                <EyeOutlined />
+                <EditOutlined />
               </a-button>
 
-              <a-button
-                v-if="showDownload"
-                type="text"
-                size="small"
-                class="action-btn"
-                @click.stop.prevent="handleDownload(picture)"
-                title="下载"
+              <a-popconfirm
+                title="确定要删除这张图片吗？"
+                ok-text="确定"
+                cancel-text="取消"
+                @confirm="doDelete(picture, $event)"
               >
-                <DownloadOutlined />
-              </a-button>
-
-              <a-button
-                v-if="showLike"
-                type="text"
-                size="small"
-                class="action-btn"
-                @click="handleLike(picture)"
-                title="点赞"
-              >
-                <HeartOutlined />
-              </a-button>
-
-              <a-button
-                v-if="showCollect"
-                type="text"
-                size="small"
-                class="action-btn"
-                @click="handleCollect(picture)"
-                :loading="collectingPictureIds.has(picture.id)"
-                :disabled="collectingPictureIds.has(picture.id)"
-                :title="collectingPictureIds.has(picture.id) ? '收藏中...' : '收藏'"
-              >
-                <StarOutlined v-if="!collectingPictureIds.has(picture.id)" />
-              </a-button>
-
-              <a-button
-                v-if="showShare"
-                type="text"
-                size="small"
-                class="action-btn"
-                @click="handleShare(picture)"
-                title="分享"
-              >
-                <ShareAltOutlined />
-              </a-button>
-
-              <a-button
-                v-if="showSearch"
-                type="text"
-                size="small"
-                class="action-btn"
-                @click="handleSearchSimilar(picture)"
-                title="相似图片"
-              >
-                <SearchOutlined />
-              </a-button>
+                <a-button
+                  type="text"
+                  size="small"
+                  class="action-btn action-btn-danger"
+                  title="删除"
+                  @click.stop
+                >
+                  <DeleteOutlined />
+                </a-button>
+              </a-popconfirm>
             </div>
           </div>
         </div>
@@ -129,47 +88,25 @@
 
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted, nextTick, watch } from 'vue'
-import { message, Modal } from 'ant-design-vue'
-import {
-  EyeOutlined,
-  DownloadOutlined,
-  HeartOutlined,
-  StarOutlined,
-  ShareAltOutlined,
-  SearchOutlined
-} from '@ant-design/icons-vue'
-import { downloadImage } from '@/utils/index'
-import { uploadPictureByUrlUsingPost } from '@/api/pictureController.ts'
-import { listSpaceVoByPageUsingPost } from '@/api/spaceController.ts'
-import { useLoginUserStore } from '@/stores/useLoginUserStore.ts'
+import { message } from 'ant-design-vue'
+import { EditOutlined, DeleteOutlined } from '@ant-design/icons-vue'
+import { deletePictureUsingPost } from '@/api/pictureController.ts'
+import { useRouter } from 'vue-router'
 
 interface Props {
   pictureList?: API.PictureVO[]
   loading?: boolean
-  showView?: boolean
-  showDownload?: boolean
-  showLike?: boolean
-  showCollect?: boolean
-  showShare?: boolean
-  showSearch?: boolean
+  onReload?: () => void
 }
 
 const props = withDefaults(defineProps<Props>(), {
   pictureList: () => [],
   loading: false,
-  showView: true,
-  showDownload: true,
-  showLike: true,
-  showCollect: true,
-  showShare: true,
-  showSearch: true
 })
 
+const router = useRouter()
 const containerRef = ref<HTMLElement>()
 const pictureItems = ref<HTMLElement[]>([])
-
-// 收藏按钮加载状态
-const collectingPictureIds = ref<Set<number>>(new Set())
 
 // 根据容器宽度计算列数
 const columnCount = ref(4)
@@ -293,143 +230,37 @@ const handleImageError = (event: Event) => {
 
 // 点击图片
 const handlePictureClick = (picture: API.PictureVO) => {
-  handleView(picture)
-}
-
-// 查看图片
-const handleView = (picture: API.PictureVO) => {
   window.open(`/picture/${picture.id}`, '_blank')
 }
 
-// 点赞
-const handleLike = async (_picture: API.PictureVO) => {
-  try {
-    // TODO: 调用
-    // 点赞API
-    message.success('点赞成功')
-  } catch (error) {
-    message.error('点赞失败')
-  }
+// 编辑
+const doEdit = (picture: API.PictureVO, e: Event) => {
+  e.stopPropagation()
+  router.push({
+    path: '/add_picture',
+    query: {
+      id: picture.id,
+      spaceId: picture.spaceId,
+    },
+  })
 }
 
-// 收藏
-const handleCollect = async (picture: API.PictureVO) => {
-  const loginUserStore = useLoginUserStore()
-
-  // 检查登录状态
-  if (!loginUserStore.loginUser.id) {
-    message.warning('请先登录')
+// 删除
+const doDelete = async (picture: API.PictureVO, e: Event) => {
+  e.stopPropagation()
+  const id = picture.id
+  if (!id) {
     return
   }
-
-  // 防止重复点击
-  if (collectingPictureIds.value.has(picture.id)) {
-    return
-  }
-
-  // 添加到加载状态
-  collectingPictureIds.value.add(picture.id)
-
-  // 显示加载提示
-  const hide = message.loading('正在收藏中...', 0)
-
-  try {
-    // 获取用户的私有空间列表
-    const spaceRes = await listSpaceVoByPageUsingPost({
-      current: 1,
-      pageSize: 20,
-      sortField: 'createTime',
-      sortOrder: 'descend',
-    })
-
-    if (spaceRes.data.code !== 0 || !spaceRes.data.data?.records) {
-      hide()
-      message.error('获取空间列表失败')
-      return
+  const res = await deletePictureUsingPost({ id })
+  if (res.data.code === 0) {
+    message.success('删除成功')
+    // 让外层刷新
+    if (props.onReload) {
+      props.onReload()
     }
-
-    const spaces = spaceRes.data.data.records
-
-    // 如果没有私有空间，提示创建
-    if (spaces.length === 0) {
-      hide()
-      Modal.confirm({
-        title: '提示',
-        content: '您还没有私有空间，是否前往创建？',
-        okText: '去创建',
-        cancelText: '取消',
-        onOk: () => {
-          window.location.href = '/add/space'
-        }
-      })
-      return
-    }
-
-    // 如果只有一个空间，直接收藏到该空间
-    let targetSpaceId = spaces[0].id
-
-    // 如果有多个空间，让用户选择（简化版：使用第一个空间）
-    // TODO: 可以后续优化为弹出选择框
-    if (spaces.length > 1) {
-      // 暂时使用第一个空间
-      targetSpaceId = spaces[0].id
-    }
-
-    // 通过 URL 上传图片到私有空间
-    const uploadRes = await uploadPictureByUrlUsingPost({
-      fileUrl: picture.url,
-      spaceId: targetSpaceId,
-      picName: picture.name + '（收藏）',
-    })
-
-    hide()
-
-    if (uploadRes.data.code === 0) {
-      message.success(`已收藏到空间：${spaces[0].spaceName}`)
-    } else {
-      message.error('收藏失败：' + uploadRes.data.message)
-    }
-  } catch (error: any) {
-    hide()
-    message.error('收藏失败：' + error.message)
-  } finally {
-    // 移除加载状态
-    collectingPictureIds.value.delete(picture.id)
-  }
-}
-
-// 分享
-const handleShare = (picture: API.PictureVO) => {
-  if (navigator.share) {
-    navigator.share({
-      title: picture.name,
-      text: picture.introduction,
-      url: window.location.origin + `/picture/${picture.id}`
-    })
   } else {
-    // 复制链接到剪贴板
-    const url = window.location.origin + `/picture/${picture.id}`
-    navigator.clipboard.writeText(url).then(() => {
-      message.success('链接已复制到剪贴板')
-    }).catch(() => {
-      message.error('分享失败')
-    })
-  }
-}
-
-// 搜索相似图片
-const handleSearchSimilar = (_picture: API.PictureVO) => {
-  // TODO: 实现相似图片搜索
-  message.info('相似图片搜索功能开发中')
-}
-
-// 下载图片
-const handleDownload = (picture: API.PictureVO) => {
-  if (picture.url) {
-    downloadImage(picture.url, picture.name)
-    message.success('开始下载图片')
-  } else {
-    message.error('图片链接不存在')
+    message.error('删除失败')
   }
 }
 
@@ -467,7 +298,7 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
-.home-picture-list {
+.space-picture-list {
   width: 100%;
   padding: 0 16px;
 }
@@ -568,6 +399,10 @@ onUnmounted(() => {
   transform: scale(1.1);
 }
 
+.action-btn-danger:hover {
+  color: #ff4d4f !important;
+}
+
 .picture-info-overlay .picture-title {
   font-size: 14px;
   font-weight: 500;
@@ -618,7 +453,7 @@ onUnmounted(() => {
 
 /* 响应式调整 */
 @media (max-width: 576px) {
-  .home-picture-list {
+  .space-picture-list {
     padding: 0 8px;
   }
 

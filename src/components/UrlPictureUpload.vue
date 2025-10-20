@@ -37,7 +37,7 @@ const loading = ref<boolean>(false)
 const handleUpload = async () => {
   loading.value = true
   try {
-    const params: API.PictureUploadRequest = { fileUrl: fileUrl.value }
+    const params: API.PictureUploadRequest = props.picture ? { id: props.picture.id } : {}
     params.spaceId = props.spaceId;
     if (props.picture) {
       params.id = props.picture.id
