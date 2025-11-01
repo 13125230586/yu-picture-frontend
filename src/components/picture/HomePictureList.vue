@@ -142,6 +142,7 @@ import { downloadImage } from '@/utils/index'
 import { uploadPictureByUrlUsingPost } from '@/api/pictureController.ts'
 import { listSpaceVoByPageUsingPost } from '@/api/spaceController.ts'
 import { useLoginUserStore } from '@/stores/useLoginUserStore.ts'
+import { useRouter } from 'vue-router'
 
 interface Props {
   pictureList?: API.PictureVO[]
@@ -167,6 +168,9 @@ const props = withDefaults(defineProps<Props>(), {
 
 const containerRef = ref<HTMLElement>()
 const pictureItems = ref<HTMLElement[]>([])
+
+// 路由
+const router = useRouter()
 
 // 收藏按钮加载状态
 const collectingPictureIds = ref<Set<number>>(new Set())
@@ -418,9 +422,24 @@ const handleShare = (picture: API.PictureVO) => {
 }
 
 // 搜索相似图片
-const handleSearchSimilar = (_picture: API.PictureVO) => {
-  // TODO: 实现相似图片搜索
-  message.info('相似图片搜索功能开发中')
+const handleSearchSimilar = (picture: API.PictureVO) => {
+  console.log('[以图搜图] 点击搜索，图片信息:', picture)
+  if (!picture.id) {
+    message.error('图片ID不存在')
+    console.error('[以图搜图] 错误: 图片ID不存在')
+    return
+  }
+
+  // 提示用户功能比较耗时
+  message.info('该功能比较耗时，请耐心等待')
+
+  console.log('[以图搜图] 准备跳转，pictureId:', picture.id)
+  router.push({
+    path: '/search_picture',
+    query: {
+      pictureId: picture.id
+    }
+  })
 }
 
 // 下载图片
