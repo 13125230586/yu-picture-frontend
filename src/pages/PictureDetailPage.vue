@@ -5,15 +5,23 @@
       <a-col :sm="24" :md="16" :xl="18">
         <a-card title="图片预览">
           <!-- 图片展示区域 -->
-          <div style="display: flex; justify-content: center; align-items: center; min-height: 350px; margin-bottom: 16px;">
+          <div
+            style="
+              display: flex;
+              justify-content: center;
+              align-items: center;
+              min-height: 350px;
+              margin-bottom: 16px;
+            "
+          >
             <a-image :src="picture.url" style="max-height: 500px; object-fit: contain" />
           </div>
-          
+
           <!-- 互动组件 -->
           <div class="picture-actions">
             <a-space size="large">
               <div class="action-item" @click="handleLike">
-                <a-button type="text" size="large" :class="{ 'liked': isLiked }">
+                <a-button type="text" size="large" :class="{ liked: isLiked }">
                   <HeartOutlined />
                 </a-button>
                 <div class="action-info">
@@ -21,7 +29,7 @@
                   <span class="action-label">点赞</span>
                 </div>
               </div>
-              
+
               <div class="action-item" @click="doDownload">
                 <a-button type="text" size="large">
                   <DownloadOutlined />
@@ -31,9 +39,9 @@
                   <span class="action-label">下载</span>
                 </div>
               </div>
-              
+
               <div class="action-item" @click="handleCollect">
-                <a-button type="text" size="large" :class="{ 'collected': isCollected }">
+                <a-button type="text" size="large" :class="{ collected: isCollected }">
                   <StarOutlined />
                 </a-button>
                 <div class="action-info">
@@ -41,7 +49,7 @@
                   <span class="action-label">收藏</span>
                 </div>
               </div>
-              
+
               <div class="action-item" @click="handleShare">
                 <a-button type="text" size="large">
                   <ShareAltOutlined />
@@ -94,6 +102,19 @@
             <a-descriptions-item label="大小">
               {{ formatSize(picture.picSize) }}
             </a-descriptions-item>
+            <a-descriptions-item label="主色调">
+              <a-space>
+                {{ picture.picColor ?? '-' }}
+                <div
+                  v-if="picture.picColor"
+                  :style="{
+                    backgroundColor: toHexColor(picture.picColor),
+                    width: '16px',
+                    height: '16px',
+                  }"
+                />
+              </a-space>
+            </a-descriptions-item>
           </a-descriptions>
           <!-- 图片操作 -->
           <a-space wrap>
@@ -101,6 +122,12 @@
               免费下载
               <template #icon>
                 <DownloadOutlined />
+              </template>
+            </a-button>
+            <a-button @click="handleShare">
+              分享
+              <template #icon>
+                <ShareAltOutlined />
               </template>
             </a-button>
             <a-button v-if="canEdit" :icon="h(EditOutlined)" type="default" @click="doEdit">
@@ -112,14 +139,14 @@
               cancel-text="取消"
               @confirm="doDelete"
             >
-              <a-button v-if="canEdit" :icon="h(DeleteOutlined)" danger>
-                删除
-              </a-button>
+              <a-button v-if="canEdit" :icon="h(DeleteOutlined)" danger> 删除 </a-button>
             </a-popconfirm>
           </a-space>
         </a-card>
       </a-col>
     </a-row>
+    <!-- 分享弹窗 -->
+    <ShareModel ref="shareModelRef" title="分享图片" :link="shareLink" />
   </div>
 </template>
 
@@ -127,10 +154,18 @@
 import { computed, h, onMounted, ref } from 'vue'
 import { deletePictureUsingPost, getPictureVoByIdUsingGet } from '@/api/pictureController.ts'
 import { message } from 'ant-design-vue'
-import { DeleteOutlined, DownloadOutlined, EditOutlined, HeartOutlined, StarOutlined, ShareAltOutlined } from '@ant-design/icons-vue'
+import {
+  DeleteOutlined,
+  DownloadOutlined,
+  EditOutlined,
+  HeartOutlined,
+  StarOutlined,
+  ShareAltOutlined,
+} from '@ant-design/icons-vue'
 import { useLoginUserStore } from '@/stores/useLoginUserStore.ts'
 import { useRouter } from 'vue-router'
-import { downloadImage, formatSize } from '@/utils'
+import { downloadImage, formatSize, toHexColor } from '@/utils'
+import ShareModel from '@/components/shareModel.vue'
 
 interface Props {
   id: string | number
@@ -139,17 +174,25 @@ interface Props {
 const props = defineProps<Props>()
 const picture = ref<API.PictureVO>({})
 
+// shareModel 组件引用
+const shareModelRef = ref()
+
 // 互动状态
 const isLiked = ref(false)
 const isCollected = ref(false)
 
 // 数量统计
 const likeCount = ref(0)
-const downloadCount = ref(0) 
+const downloadCount = ref(0)
 const collectCount = ref(0)
 const shareCount = ref(0)
 
 const loginUserStore = useLoginUserStore()
+
+// 获取当前页面分享链接
+const shareLink = computed(() => {
+  return window.location.href
+})
 
 // 是否具有编辑权限
 const canEdit = computed(() => {
@@ -237,19 +280,7 @@ const handleCollect = () => {
 
 // 分享
 const handleShare = () => {
-  if (navigator.share) {
-    navigator.share({
-      title: picture.value.name,
-      text: picture.value.introduction,
-      url: window.location.href
-    })
-  } else {
-    navigator.clipboard.writeText(window.location.href).then(() => {
-      message.success('链接已复制到剪贴板')
-    }).catch(() => {
-      message.error('分享失败')
-    })
-  }
+  shareModelRef.value?.openModal()
   shareCount.value++
 }
 </script>
@@ -324,15 +355,14 @@ const handleShare = () => {
   .picture-actions {
     padding: 6px 0;
   }
-  
+
   .action-item {
     padding: 4px 8px;
     gap: 6px;
   }
-  
+
   .action-item :deep(.ant-btn) {
     font-size: 18px;
   }
 }
 </style>
-

@@ -56,6 +56,16 @@
                 <EditOutlined />
               </a-button>
 
+              <a-button
+                type="text"
+                size="small"
+                class="action-btn"
+                @click="handleShare(picture, $event)"
+                title="分享"
+              >
+                <ShareAltOutlined />
+              </a-button>
+
               <a-popconfirm
                 title="确定要删除这张图片吗？"
                 ok-text="确定"
@@ -83,15 +93,19 @@
     <div v-if="!loading && pictureList.length === 0" class="empty-state">
       <a-empty description="暂无图片" />
     </div>
+
+    <!-- 分享弹窗 -->
+    <ShareModel ref="shareModelRef" title="分享图片" :link="currentShareLink" />
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted, nextTick, watch } from 'vue'
 import { message } from 'ant-design-vue'
-import { EditOutlined, DeleteOutlined } from '@ant-design/icons-vue'
+import { EditOutlined, DeleteOutlined, ShareAltOutlined } from '@ant-design/icons-vue'
 import { deletePictureUsingPost } from '@/api/pictureController.ts'
 import { useRouter } from 'vue-router'
+import ShareModel from '@/components/shareModel.vue'
 
 interface Props {
   pictureList?: API.PictureVO[]
@@ -107,6 +121,11 @@ const props = withDefaults(defineProps<Props>(), {
 const router = useRouter()
 const containerRef = ref<HTMLElement>()
 const pictureItems = ref<HTMLElement[]>([])
+
+// shareModel 组件引用
+const shareModelRef = ref()
+// 当前分享的图片链接
+const currentShareLink = ref('')
 
 // 根据容器宽度计算列数
 const columnCount = ref(4)
@@ -262,6 +281,13 @@ const doDelete = async (picture: API.PictureVO, e: Event) => {
   } else {
     message.error('删除失败')
   }
+}
+
+// 分享
+const handleShare = (picture: API.PictureVO, e: Event) => {
+  e.stopPropagation()
+  currentShareLink.value = `${window.location.origin}/picture/${picture.id}`
+  shareModelRef.value?.openModal()
 }
 
 // 监听图片列表变化

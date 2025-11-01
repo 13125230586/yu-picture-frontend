@@ -97,7 +97,7 @@
                 type="text"
                 size="small"
                 class="action-btn"
-                @click="handleShare(picture)"
+                @click="doShare(picture, $event)"
                 title="分享"
               >
                 <ShareAltOutlined />
@@ -124,6 +124,9 @@
     <div v-if="!loading && pictureList.length === 0" class="empty-state">
       <a-empty description="暂无图片" />
     </div>
+
+    <!-- 分享弹窗 -->
+    <share-model ref="shareModalRef" title="分享图片" :link="shareLink || ''" />
   </div>
 </template>
 
@@ -143,6 +146,7 @@ import { uploadPictureByUrlUsingPost } from '@/api/pictureController.ts'
 import { listSpaceVoByPageUsingPost } from '@/api/spaceController.ts'
 import { useLoginUserStore } from '@/stores/useLoginUserStore.ts'
 import { useRouter } from 'vue-router'
+import ShareModel from '@/components/shareModel.vue'
 
 interface Props {
   pictureList?: API.PictureVO[]
@@ -402,24 +406,20 @@ const handleCollect = async (picture: API.PictureVO) => {
   }
 }
 
+// 分享弹窗引用
+const shareModalRef = ref()
+// 分享链接
+const shareLink = ref<string>()
+
 // 分享
-const handleShare = (picture: API.PictureVO) => {
-  if (navigator.share) {
-    navigator.share({
-      title: picture.name,
-      text: picture.introduction,
-      url: window.location.origin + `/picture/${picture.id}`
-    })
-  } else {
-    // 复制链接到剪贴板
-    const url = window.location.origin + `/picture/${picture.id}`
-    navigator.clipboard.writeText(url).then(() => {
-      message.success('链接已复制到剪贴板')
-    }).catch(() => {
-      message.error('分享失败')
-    })
+const doShare = (picture: API.PictureVO, e: Event) => {
+  e.stopPropagation()
+  shareLink.value = `${window.location.protocol}//${window.location.host}/picture/${picture.id}`
+  if (shareModalRef.value) {
+    shareModalRef.value.openModal()
   }
 }
+
 
 // 搜索相似图片
 const handleSearchSimilar = (picture: API.PictureVO) => {
