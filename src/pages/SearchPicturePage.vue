@@ -62,15 +62,12 @@ const getOldPicture = async () => {
   console.log('[以图搜图] 使用的 ID (字符串):', id)
 
   try {
-    console.log('[以图搜图] 开始获取原图数据, ID:', id)
     const res = await getPictureVoByIdUsingGet({
       id: id as any,
     })
-    console.log('[以图搜图] 获取原图数据响应:', res.data)
 
     if (res.data.code === 0 && res.data.data) {
       picture.value = res.data.data
-      console.log('[以图搜图] 原图数据获取成功')
     } else {
       console.warn('[以图搜图] 原图数据获取失败，但不影响搜索:', res.data.message)
     }

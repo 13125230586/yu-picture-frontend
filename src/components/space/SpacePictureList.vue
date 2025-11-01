@@ -46,42 +46,45 @@
 
             <!-- 操作按钮 -->
             <div class="picture-actions" @click.stop>
-              <a-button
-                type="text"
-                size="small"
-                class="action-btn"
-                @click="doEdit(picture, $event)"
-                title="编辑"
-              >
-                <EditOutlined />
-              </a-button>
-
-              <a-button
-                type="text"
-                size="small"
-                class="action-btn"
-                @click="handleShare(picture, $event)"
-                title="分享"
-              >
-                <ShareAltOutlined />
-              </a-button>
-
-              <a-popconfirm
-                title="确定要删除这张图片吗？"
-                ok-text="确定"
-                cancel-text="取消"
-                @confirm="doDelete(picture, $event)"
-              >
+              <a-tooltip title="编辑图片">
                 <a-button
                   type="text"
                   size="small"
-                  class="action-btn action-btn-danger"
-                  title="删除"
-                  @click.stop
+                  class="action-btn"
+                  @click="doEdit(picture, $event)"
                 >
-                  <DeleteOutlined />
+                  <EditOutlined />
                 </a-button>
-              </a-popconfirm>
+              </a-tooltip>
+
+              <a-tooltip title="分享图片">
+                <a-button
+                  type="text"
+                  size="small"
+                  class="action-btn"
+                  @click="handleShare(picture, $event)"
+                >
+                  <ShareAltOutlined />
+                </a-button>
+              </a-tooltip>
+
+              <a-tooltip title="删除图片">
+                <a-popconfirm
+                  title="确定要删除这张图片吗？"
+                  ok-text="确定"
+                  cancel-text="取消"
+                  @confirm="doDelete(picture, $event)"
+                >
+                  <a-button
+                    type="text"
+                    size="small"
+                    class="action-btn action-btn-danger"
+                    @click.stop
+                  >
+                    <DeleteOutlined />
+                  </a-button>
+                </a-popconfirm>
+              </a-tooltip>
             </div>
           </div>
         </div>

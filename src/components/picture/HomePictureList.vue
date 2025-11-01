@@ -46,73 +46,76 @@
 
             <!-- 操作按钮 -->
             <div class="picture-actions" @click.stop>
-              <a-button
-                v-if="showView"
-                type="text"
-                size="small"
-                class="action-btn"
-                @click="handleView(picture)"
-                title="查看详情"
-              >
-                <EyeOutlined />
-              </a-button>
+              <a-tooltip v-if="showView" title="查看详情">
+                <a-button
+                  type="text"
+                  size="small"
+                  class="action-btn"
+                  @click="handleView(picture)"
+                >
+                  <EyeOutlined />
+                </a-button>
+              </a-tooltip>
 
-              <a-button
-                v-if="showDownload"
-                type="text"
-                size="small"
-                class="action-btn"
-                @click.stop.prevent="handleDownload(picture)"
-                title="下载"
-              >
-                <DownloadOutlined />
-              </a-button>
+              <a-tooltip v-if="showDownload" title="下载图片">
+                <a-button
+                  type="text"
+                  size="small"
+                  class="action-btn"
+                  @click.stop.prevent="handleDownload(picture)"
+                >
+                  <DownloadOutlined />
+                </a-button>
+              </a-tooltip>
 
-              <a-button
-                v-if="showLike"
-                type="text"
-                size="small"
-                class="action-btn"
-                @click="handleLike(picture)"
-                title="点赞"
-              >
-                <HeartOutlined />
-              </a-button>
+              <a-tooltip v-if="showLike" title="点赞">
+                <a-button
+                  type="text"
+                  size="small"
+                  class="action-btn"
+                  @click="handleLike(picture)"
+                >
+                  <HeartOutlined />
+                </a-button>
+              </a-tooltip>
 
-              <a-button
+              <a-tooltip
                 v-if="showCollect"
-                type="text"
-                size="small"
-                class="action-btn"
-                @click="handleCollect(picture)"
-                :loading="collectingPictureIds.has(picture.id)"
-                :disabled="collectingPictureIds.has(picture.id)"
-                :title="collectingPictureIds.has(picture.id) ? '收藏中...' : '收藏'"
+                :title="collectingPictureIds.has(picture.id) ? '收藏中...' : '收藏到空间'"
               >
-                <StarOutlined v-if="!collectingPictureIds.has(picture.id)" />
-              </a-button>
+                <a-button
+                  type="text"
+                  size="small"
+                  class="action-btn"
+                  @click="handleCollect(picture)"
+                  :loading="collectingPictureIds.has(picture.id)"
+                  :disabled="collectingPictureIds.has(picture.id)"
+                >
+                  <StarOutlined v-if="!collectingPictureIds.has(picture.id)" />
+                </a-button>
+              </a-tooltip>
 
-              <a-button
-                v-if="showShare"
-                type="text"
-                size="small"
-                class="action-btn"
-                @click="doShare(picture, $event)"
-                title="分享"
-              >
-                <ShareAltOutlined />
-              </a-button>
+              <a-tooltip v-if="showShare" title="分享图片">
+                <a-button
+                  type="text"
+                  size="small"
+                  class="action-btn"
+                  @click="doShare(picture, $event)"
+                >
+                  <ShareAltOutlined />
+                </a-button>
+              </a-tooltip>
 
-              <a-button
-                v-if="showSearch"
-                type="text"
-                size="small"
-                class="action-btn"
-                @click="handleSearchSimilar(picture)"
-                title="相似图片"
-              >
-                <SearchOutlined />
-              </a-button>
+              <a-tooltip v-if="showSearch" title="搜索相似图片">
+                <a-button
+                  type="text"
+                  size="small"
+                  class="action-btn"
+                  @click="handleSearchSimilar(picture)"
+                >
+                  <SearchOutlined />
+                </a-button>
+              </a-tooltip>
             </div>
           </div>
         </div>
